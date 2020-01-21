@@ -1,0 +1,21 @@
+#r "Newtonsoft.Json"
+
+using System.Net;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
+
+public static  string Run(HttpRequestMessage req, ILogger log)
+{
+    	log.LogInformation("C# HTTP trigger function processed a request.");
+   	 HttpContent requestContent = req.Content;
+   	 string jsonContent = requestContent.ReadAsStringAsync().Result;
+ string idsubstr = jsonContent.Substring(jsonContent.IndexOf("workItemId") + 12, 10);
+    	idsubstr = idsubstr.Substring(0, idsubstr.IndexOf(','));
+    
+    	string tpstr = j	sonContent.Substring(jsonContent.IndexOf("System.TeamProject") + 21);
+    	tpstr = tpstr.Substring(0, tpstr.IndexOf(',') - 1);
+string result = "Work item id: " + idsubstr + "| Team Project: " + tpstr;
+    	log.LogInformation(result);
+    	return result;
+}
