@@ -1,0 +1,37 @@
+az group create --name myResourceGroupGS --location westus
+az vm create --resource-group myResourceGroupGS --name myVM --image win2012datacenter --generate-ssh-keys --assign-identity --admin-username azureuser --admin-password P2ssw0rd@123
+az vm identity assign -g myResourceGroupGS -n myVm
+ 
+
+az group create --name myResourceGroupGS2 --location westus
+az identity create -g myResourceGroupGS2 -n myUserAssignedIdentity
+az vm create --resource-group myResourceGroupGS2 --name myVM --image win2012datacenter --generate-ssh-keys --assign-identity --admin-username azureuser --admin-password myPassword12 --assign-identity myUserAssignedIdentity
+az vm identity assign -g myResourceGroup -n myVM --identities myUserAssignedIdentity
+
+
+$spID=$(az resource list -n myVM --query [*].identity.principalId --out tsv)
+$spID=$(az resource list -n DevTestVMSS --query [*].identity.principalId --out tsv)
+az role assignment create --assignee $spID --role 'Reader' --scope /subscriptions/fb1504cd-184d-4c6c-b812-f504356c8afa/resourceGroups/myResourceGroupGS2/providers/Microsoft.Storage/storageAccounts/myStorageAcctgs
+
+Enable system identity for existing VM
+az vm identity assign -g myResourceGroup -n myVm 
+
+Disable
+az vm update -n myVM -g myResourceGroup --set identity.type='UserAssigned' 
+
+User assigned managed identity create and enable to VM
+az identity create -g <RESOURCE GROUP> -n <USER ASSIGNED IDENTITY NAME>
+
+assign to VM
+az vm identity assign -g <RESOURCE GROUP> -n <VM NAME> --identities <USER ASSIGNED IDENTITY>
+
+remove
+az vm identity remove -g <RESOURCE GROUP> -n <VM NAME> --identities <USER ASSIGNED IDENTITY>
+
+removes all user-assigned identities (if there are not system assigned)
+az vm update -n myVM -g myResourceGroup --set identity.type="none" identity.userAssignedIdentities=null
+
+remove system as well as user
+az vm update -n myVM -g myResourceGroup --set identity.type='SystemAssigned' identity.userAssignedIdentities=null 
+
+
