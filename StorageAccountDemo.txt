@@ -1,0 +1,33 @@
+class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Azure Blob Demo!");
+            ProcessAsync().GetAwaiter().GetResult();
+            Console.WriteLine("Press enter to exit");
+            Console.ReadLine();
+        } 
+        private static async Task ProcessAsync()
+        {
+            // Copy the connection string from the portal in the variable below.
+            string storageConnectionString = "";
+            // Check whether the connection string can be parsed.
+            CloudStorageAccount storageAccount;
+            if (CloudStorageAccount.TryParse(storageConnectionString, out storageAccount))
+            {
+                Console.WriteLine("Valid connection string.\r\n");
+                CloudBlobClient cloudBlobClient = storageAccount.CreateCloudBlobClient();
+                CloudBlobContainer cloudBlobContainer =cloudBlobClient.GetContainerReference("demoblob" + Guid.NewGuid().ToString());
+                await cloudBlobContainer.CreateAsync();
+                Console.WriteLine("Container is created");
+            
+            }
+            else
+            {
+                Console.WriteLine(
+                "A valid connection string has not been defined in the storageConnectionString variable.");
+                Console.WriteLine("Press enter to exit the application.");
+                Console.ReadLine();
+            }
+        }
+    }
