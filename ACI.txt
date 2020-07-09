@@ -1,0 +1,9 @@
+az acr update --name <acrName> --admin-enabled true
+
+#query
+az acr credential show --name <ACR name> --query "passwords[0].value"
+
+az container create --resource-group <rg name> --name <ACI name> --image <ACR name>.azurecr.io/aci-helloworld:v1 --cpu 1 --memory 1 --registry-username <ACR name> --registry-password <password> --dns-name-label myfqdn --ports 80
+
+# View container FQDN
+az container show --resource-group <RG name> --name <ACI name>   --query instanceView.state
