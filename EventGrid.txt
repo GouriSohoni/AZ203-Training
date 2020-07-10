@@ -1,0 +1,33 @@
+myLocation="EastUS"
+myRG=<RG name>
+
+create resource group
+
+register event grid namespace
+
+az provider show --namespace Microsoft.EventGrid --query "registrationState"
+
+let rNum=$RANDOM*$RANDOM
+myTopicName="az204-topic-${rNum}"
+az eventgrid topic create --name $myTopicName -l $myLocation -g $myRG
+
+
+mySiteName="az204-site-${rNum}"
+mySiteURL="https://${mySiteName}.azurewebsites.net"
+
+az deployment group create -g $myRG --template-uri "https://raw.githubusercontent.com/Azure-Samples/azure-event-grid-viewer/master/azuredeploy.json" --parameters siteName=$mySite hostingPlanName=viewerhost
+
+endpoint="${mySiteURL}/api/updates"
+subId=$(az account show --subscription "" | jq -r '.id')
+
+az eventgrid event-subscription create --source-resource-id "/subscriptions/$subId/resourceGroups/$myRG/providers/Microsoft.EventGrid/topics/$myTopicName" --name demoViewerSub --endpoint $endpoint
+
+endpoint=$(az eventgrid topic show --name $myTopicName-g $myRG --query "endpoint" --output tsv)
+
+key=$(az eventgrid topic key list --name $myTopicName -g $myRG --query "key1" --output tsv)
+
+event='[ {"id": "'"$RANDOM"'", "eventType": "recordInserted", 
+"subject": "myapp/vehicles/motorcycles", "eventTime": "'`date +%Y-%m-%dT%H:%M:%S%z`'", "data":{ "make": "SSGS", "model": 
+ "MyData"},"dataVersion": "1.0"} ]'
+
+curl -X POST -H "aeg-sas-key: $key" -d "$event" $endpoint
